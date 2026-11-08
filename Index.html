@@ -1,0 +1,144 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#121212"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><title>Whuxen Musik</title>
+<style>
+:root{--bg:#121212;--in:#2a2a2a;--tx:#fff;--mu:#a7a7a7;--ac:#1ed760}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px system-ui,Arial;padding:0 16px 170px}
+h1{font-size:26px;margin:18px 0 12px}h2{font-size:18px;margin:20px 0 8px}
+.s{color:var(--mu);font-size:12px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}.chips b{flex:none;padding:8px 14px;border-radius:20px;background:var(--in);font-weight:600;font-size:13px}.chips b.on{background:var(--ac);color:#000}
+.in{background:var(--in);border:0;border-radius:24px;padding:12px 16px;color:var(--tx);width:100%;font-size:15px}
+.row{display:flex;align-items:center;gap:12px;padding:8px 0}.tr{display:flex;justify-content:space-between;align-items:center}
+.cv{width:48px;height:48px;border-radius:6px;background:var(--in) center/cover;flex:none;display:grid;place-items:center;color:var(--mu);font-size:20px}
+.mt{flex:1;min-width:0}.mt b,.mt span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mt span{color:var(--mu);font-size:13px}
+.ib{background:none;border:0;color:var(--tx);font-size:20px;padding:8px;min-width:40px}
+.bt{background:var(--ac);color:#000;border:0;border-radius:24px;padding:13px 20px;font-weight:700;font-size:15px}.bt.g{background:var(--in);color:var(--tx)}
+.seg{display:flex;gap:8px;margin:6px 0 10px}.seg b{padding:8px 16px;border-radius:20px;background:var(--in);font-size:13px;font-weight:600}.seg b.on{background:var(--tx);color:#000}
+.on2{color:var(--ac)}
+#mini{position:fixed;left:8px;right:8px;bottom:78px;background:#2b2b2b;border-radius:12px;padding:8px 10px;display:none;align-items:center;gap:10px;z-index:20}
+#mini .pr{position:absolute;left:10px;right:10px;bottom:0;height:2px;background:#555}#mini .pr i{display:block;height:100%;width:0;background:var(--ac)}
+nav{position:fixed;left:0;right:0;bottom:0;background:#0d0d0d;display:flex;height:70px;z-index:10;padding-bottom:env(safe-area-inset-bottom)}
+nav a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;color:var(--mu)}nav a.on{color:var(--tx)}nav a span{font-size:22px}
+#np{position:fixed;inset:0;background:linear-gradient(#3a3a3a,#121212 60%);z-index:40;display:none;flex-direction:column;padding:20px 24px;overflow:auto}
+#np .art{width:100%;max-width:340px;aspect-ratio:1;margin:16px auto;border-radius:10px;background:var(--in) center/cover;display:grid;place-items:center;font-size:80px;color:var(--mu)}
+input[type=range]{width:100%;accent-color:var(--ac)}
+.ctl{display:flex;justify-content:space-between;align-items:center;margin-top:14px}.ctl .ib{font-size:26px}.play{width:68px;height:68px;border-radius:50%;background:#fff;color:#000;font-size:28px;border:0}
+#sh{position:fixed;inset:0;background:#000a;z-index:60;display:none;align-items:flex-end}#shc{background:#282828;width:100%;border-radius:18px 18px 0 0;padding:14px 16px 24px;max-height:70vh;overflow:auto}#shc button{display:block;width:100%;text-align:left;background:none;border:0;color:var(--tx);font-size:16px;padding:14px 4px}
+#ts{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);background:#333;padding:10px 16px;border-radius:20px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:70}
+</style></head><body>
+<main id="v"></main>
+<div id="mini" onclick="npo(1)"><div class="cv" id="mc"></div><div class="mt"><b id="mt1"></b><span id="mt2"></span></div><button class="ib" id="mpl" onclick="event.stopPropagation();tp()">▶</button><div class="pr"><i id="mpi"></i></div></div>
+<div id="np">
+<div class="tr"><button class="ib" onclick="npo(0)">⌄</button><span class="s">SEDANG DIPUTAR</span><button class="ib" onclick="menu(cur())">⋯</button></div>
+<div class="art" id="na"></div>
+<div class="row"><div class="mt"><b id="nt1" style="font-size:22px"></b><span id="nt2" style="font-size:15px"></span></div><button class="ib" id="nfv" onclick="fav(cur())">♡</button></div>
+<input type="range" id="sk" min="0" max="1000" value="0"><div class="tr s"><span id="ct">0:00</span><span id="dt">0:00</span></div>
+<div class="ctl"><button class="ib" id="nsh" onclick="shuf()">⇄</button><button class="ib" onclick="prev()">⏮</button><button class="play" id="npl" onclick="tp()">▶</button><button class="ib" onclick="next()">⏭</button><button class="ib" id="nrp" onclick="rep()">⟲</button></div>
+<h2>Antrian</h2><div id="nq"></div></div>
+<div id="sh" onclick="if(event.target===this)sh0()"><div id="shc"></div></div>
+<div id="ts"></div><nav id="nv"></nav><audio id="au"></audio>
+<script>
+const $=i=>document.getElementById(i),au=$('au'),F=s=>(s=Math.floor(s||0),Math.floor(s/60)+':'+String(s%60).padStart(2,'0')),esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let D={cid:'',fav:[],pl:{},tk:{},rec:[]};try{D={...D,...JSON.parse(localStorage.getItem('wm')||'{}')}}catch(e){}
+const sv=()=>{try{localStorage.setItem('wm',JSON.stringify(D))}catch(e){}};
+const idb=new Promise(r=>{const q=indexedDB.open('wm',1);q.onupgradeneeded=()=>q.result.createObjectStore('f');q.onsuccess=()=>r(q.result)});
+const ix=(m,k,v)=>idb.then(d=>new Promise(r=>{const t=d.transaction('f',m==='get'?'readonly':'readwrite'),o=t.objectStore('f'),q=m==='get'?o.get(k):m==='put'?o.put(v,k):o.delete(k);t.oncomplete=()=>r(q.result)}));
+const keep=new Set([...D.fav,...D.rec,...Object.values(D.pl).flat()]);Object.keys(D.tk).forEach(k=>{if(D.tk[k].type!=='l'&&!keep.has(k))delete D.tk[k]});
+let Q=[],qi=-1,SH=0,RP=0,TB='home',genre='popularity_week',res=[],sq='',lt='lagu',cpl=null,busy=false,seeking=0,SHI=[];
+const GN=[['popularity_week','Populer'],['pop','Pop'],['rock','Rock'],['lofi','Lofi'],['electronic','Elektronik'],['jazz','Jazz'],['classical','Klasik'],['hiphop','Hip-hop'],['ambient','Ambient']];
+const cur=()=>D.tk[Q[qi]],reg=t=>{D.tk[t.id]=t};
+function toast(m){const e=$('ts');e.textContent=m;e.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.opacity=0,2200)}
+function jsonp(u){return new Promise((ok,no)=>{const f='jcb'+Date.now();window[f]=d=>{ok(d);delete window[f]};const s=document.createElement('script');s.src=u+'&callback='+f;s.onerror=()=>no('koneksi gagal');document.head.appendChild(s)})}
+async function jam(path,p){
+ if(!D.cid)throw'Client ID belum diisi';
+ const u='https://api.jamendo.com/v3.0/'+path+'/?'+new URLSearchParams({client_id:D.cid,format:'json',audioformat:'mp32',limit:30,...p});
+ try{const r=await fetch(u);return await r.json()}catch(e){return jsonp(u)}
+}
+async function fl(extra){
+ busy=true;if($('rs'))$('rs').innerHTML='<div class="s" style="padding:16px 0">Memuat...</div>';
+ try{const p=extra||(genre==='popularity_week'?{order:'popularity_week'}:{tags:genre,order:'popularity_week'}),d=await jam('tracks',p);
+  if(d.headers&&d.headers.status!=='success')throw d.headers.error_message||'permintaan ditolak';
+  res=(d.results||[]).filter(x=>x.audio).map(x=>({id:'w'+x.id,t:x.name,a:x.artist_name,img:x.image,src:x.audio,type:'w'}))}
+ catch(e){res=[];toast('Gagal memuat: '+(e&&e.message||e))}
+ busy=false;if(TB==='home'&&$('rs'))$('rs').innerHTML=rows(res,'res');
+}
+const gen=k=>{genre=k;sq='';res=[];render()},search=q=>{sq=q.trim();if(!sq)return gen(genre);fl({search:sq})};
+function lst(k){
+ if(k==='res')return res;
+ if(k==='lib')return Object.values(D.tk).filter(t=>t.type==='l');
+ if(k==='fav')return D.fav.map(i=>D.tk[i]).filter(Boolean);
+ return(D.pl[decodeURIComponent(k.slice(2))]||[]).map(i=>D.tk[i]).filter(Boolean);
+}
+const row=(t,k,i)=>`<div class="row"><div class="cv" onclick="pa('${k}',${i})" ${t.img?`style="background-image:url('${esc(t.img)}')"`:''}>${t.img?'':'♪'}</div><div class="mt" onclick="pa('${k}',${i})"><b>${esc(t.t)}</b><span>${esc(t.a)}</span></div><button class="ib" onclick="menuk('${k}',${i})">⋯</button></div>`;
+const rows=(l,k)=>l.map((t,i)=>row(t,k,i)).join('')||'<div class="s" style="padding:12px 0">Tidak ada lagu.</div>';
+function pa(k,i){const L=lst(k);if(!L.length)return;L.forEach(reg);Q=L.map(t=>t.id);qi=i;load()}
+async function load(){
+ const t=cur();if(!t)return;
+ if(au.dataset.u){URL.revokeObjectURL(au.dataset.u);au.dataset.u=''}
+ let src=t.src;
+ if(t.type==='l'){const b=await ix('get',t.id);if(!b){toast('File tidak ditemukan');return}src=URL.createObjectURL(b);au.dataset.u=src}
+ au.src=src;try{await au.play()}catch(e){}
+ D.rec=[t.id,...D.rec.filter(x=>x!==t.id)].slice(0,20);sv();
+ if('mediaSession' in navigator)navigator.mediaSession.metadata=new MediaMetadata({title:t.t,artist:t.a||'',artwork:t.img?[{src:t.img,sizes:'300x300'}]:[]});
+ $('nq').innerHTML=Q.slice(0,60).map((id,i)=>{const x=D.tk[id];return `<div class="row" onclick="qi=${i};load()"><div class="mt"><b class="${i===qi?'on2':''}">${esc(x.t)}</b><span>${esc(x.a)}</span></div></div>`}).join('');
+ ui();
+}
+function next(){if(!Q.length)return;if(SH&&Q.length>1){let n;do n=Math.floor(Math.random()*Q.length);while(n===qi);qi=n}else{qi++;if(qi>=Q.length){if(RP===1)qi=0;else{qi=Q.length-1;au.pause();return}}}load()}
+function prev(){if(au.currentTime>3||qi<=0){au.currentTime=0;return}qi--;load()}
+const tp=()=>{if(qi>=0)au.paused?au.play():au.pause()},shuf=()=>{SH=!SH;ui()},rep=()=>{RP=(RP+1)%3;ui()};
+function ui(){
+ const t=cur();$('mini').style.display=t?'flex':'none';if(!t)return;
+ const p=!au.paused,bg=t.img?`url('${t.img}')`:'',f=D.fav.includes(t.id);
+ $('mt1').textContent=$('nt1').textContent=t.t;$('mt2').textContent=$('nt2').textContent=t.a||'';
+ $('mpl').textContent=$('npl').textContent=p?'⏸':'▶';
+ [$('mc'),$('na')].forEach(e=>{e.style.backgroundImage=bg;e.textContent=t.img?'':'♪'});
+ $('nfv').textContent=f?'♥':'♡';$('nfv').className='ib'+(f?' on2':'');
+ $('nsh').className='ib'+(SH?' on2':'');$('nrp').textContent=RP===2?'⟲¹':'⟲';$('nrp').className='ib'+(RP?' on2':'');
+}
+au.onplay=au.onpause=ui;au.onended=()=>RP===2?(au.currentTime=0,au.play()):next();au.onerror=()=>{if(au.src)toast('Lagu ini gagal diputar')};
+au.ontimeupdate=()=>{const d=au.duration||0,c=au.currentTime;$('ct').textContent=F(c);$('dt').textContent=F(d);if(d){$('mpi').style.width=c/d*100+'%';if(!seeking)$('sk').value=c/d*1000}};
+$('sk').oninput=e=>{seeking=1;au.currentTime=e.target.value/1000*(au.duration||0)};$('sk').onchange=()=>seeking=0;
+if('mediaSession' in navigator){const m=navigator.mediaSession;m.setActionHandler('play',()=>au.play());m.setActionHandler('pause',()=>au.pause());m.setActionHandler('previoustrack',prev);m.setActionHandler('nexttrack',next)}
+const npo=v=>{$('np').style.display=v?'flex':'none';document.body.style.overflow=v?'hidden':''};
+function sheet(items,title){SHI=items;$('shc').innerHTML=(title?`<div class="s" style="padding:4px">${esc(title)}</div>`:'')+items.map((x,i)=>`<button onclick="shi(${i})">${esc(x[0])}</button>`).join('');$('sh').style.display='flex'}
+const sh0=()=>$('sh').style.display='none',shi=i=>{const f=SHI[i][1];sh0();f()};
+const menuk=(k,i)=>menu(lst(k)[i]);
+function menu(t){
+ if(!t)return;const f=D.fav.includes(t.id);
+ sheet([[f?'♥ Hapus dari Favorit':'♡ Tambah ke Favorit',()=>fav(t)],['＋ Tambah ke playlist',()=>addpl(t)],['⏭ Putar berikutnya',()=>{reg(t);if(qi<0){Q=[t.id];qi=0;load()}else{Q.splice(qi+1,0,t.id);toast('Ditambahkan ke antrian')}}],...(t.type==='l'?[['🗑 Hapus dari HP',()=>del(t)]]:[])],t.t);
+}
+function fav(t){if(!t)return;reg(t);D.fav=D.fav.includes(t.id)?D.fav.filter(x=>x!==t.id):[t.id,...D.fav];sv();ui();if(TB==='lib')render()}
+function newpl(ret){const n=(prompt('Nama playlist')||'').trim();if(!n)return;if(!D.pl[n])D.pl[n]=[];sv();if(ret)return n;render()}
+function addpl(t){
+ const add=n=>{reg(t);if(!D.pl[n].includes(t.id))D.pl[n].push(t.id);sv();toast('Ditambahkan ke '+n)};
+ sheet([...Object.keys(D.pl).map(n=>['♫ '+n,()=>add(n)]),['＋ Playlist baru…',()=>{const n=newpl(1);if(n)add(n)}]],'Tambah ke playlist');
+}
+function delpl(){if(confirm('Hapus playlist ini?')){delete D.pl[cpl];cpl=null;sv();render()}}
+async function del(t){if(!confirm('Hapus lagu ini dari HP?'))return;await ix('del',t.id);delete D.tk[t.id];D.fav=D.fav.filter(x=>x!==t.id);for(const n in D.pl)D.pl[n]=D.pl[n].filter(x=>x!==t.id);sv();render()}
+async function addf(files){
+ for(const f of files){const id='l'+Date.now()+Math.random().toString(36).slice(2,6),nm=f.name.replace(/\.[^.]+$/,''),p=nm.split(' - ');await ix('put',id,f);D.tk[id]={id,t:p.length>1?p.slice(1).join(' - '):nm,a:p.length>1?p[0]:'Lagu saya',type:'l',img:''}}
+ sv();toast(files.length+' lagu ditambahkan');render();
+}
+function home(){
+ if(!D.cid)return `<h1>Jelajah</h1><div class="s" style="line-height:1.7">Untuk memutar musik gratis dan legal dari Jamendo, daftar dulu (gratis) di <b>devportal.jamendo.com</b>, buat aplikasi, lalu salin <b>Client ID</b> ke tab Pengaturan. Sementara itu kamu tetap bisa memutar lagu dari HP di tab Koleksi.</div>`;
+ return `<h1>Jelajah</h1><input class="in" id="q" placeholder="Cari lagu atau artis" value="${esc(sq)}" onkeydown="if(event.key==='Enter')search(this.value)"><div class="chips" style="margin-top:10px">${GN.map(([k,n])=>`<b class="${!sq&&genre===k?'on':''}" onclick="gen('${k}')">${n}</b>`).join('')}</div><div id="rs">${rows(res,'res')}</div>`;
+}
+function plv(){
+ if(cpl!==null){const k='p:'+encodeURIComponent(cpl);return `<div class="row"><button class="ib" onclick="cpl=null;render()">‹</button><b style="font-size:18px">${esc(cpl)}</b></div><div class="row"><button class="bt" onclick="pa('${k}',0)">▶ Putar semua</button><button class="bt g" onclick="delpl()">Hapus</button></div>${rows(lst(k),k)}`}
+ return `<button class="bt" onclick="newpl()">＋ Playlist baru</button>${Object.keys(D.pl).map(n=>`<div class="row" onclick="cpl=decodeURIComponent('${encodeURIComponent(n)}');render()"><div class="cv">♫</div><div class="mt"><b>${esc(n)}</b><span>${D.pl[n].length} lagu</span></div></div>`).join('')}`;
+}
+function lib(){
+ const L=lst('lib'),body=lt==='lagu'?`<label class="bt" style="display:block;text-align:center;margin:8px 0">＋ Tambah lagu dari HP<input type="file" accept="audio/*" multiple hidden onchange="addf(this.files)"></label>${L.length?rows(L,'lib'):'<div class="s" style="line-height:1.6">Belum ada lagu. Tambahkan file musik dari HP-mu (mp3, m4a, ogg, wav). Penamaan "Artis - Judul" akan terbaca otomatis.</div>'}`:lt==='fav'?(rows(lst('fav'),'fav')):plv();
+ return `<h1>Koleksi</h1><div class="seg">${[['lagu','Lagu'],['fav','Favorit'],['pl','Playlist']].map(([k,n])=>`<b class="${lt===k?'on':''}" onclick="lt='${k}';cpl=null;render()">${n}</b>`).join('')}</div>${body}`;
+}
+const setp=()=>`<h1>Pengaturan</h1><div class="s" style="margin-bottom:6px">Jamendo Client ID</div><input class="in" id="cid" value="${esc(D.cid)}" placeholder="tempel Client ID di sini"><button class="bt" style="margin-top:10px" onclick="D.cid=$('cid').value.trim();sv();res=[];toast('Tersimpan');go('home')">Simpan</button><div class="s" style="line-height:1.7;margin-top:16px">Musik online berasal dari Jamendo (lagu berlisensi Creative Commons). Daftar gratis di devportal.jamendo.com untuk mendapat Client ID. Pakai untuk keperluan non-komersial. Lagu dari HP hanya disimpan di perangkat ini.</div><button class="bt g" style="margin-top:16px" onclick="if(confirm('Hapus semua data aplikasi?')){localStorage.removeItem('wm');indexedDB.deleteDatabase('wm');location.reload()}">Hapus semua data</button>`;
+function render(){
+ $('v').innerHTML=TB==='home'?home():TB==='lib'?lib():setp();
+ ['home','lib','set'].forEach(k=>$('n'+k).classList.toggle('on',k===TB));
+ if(TB==='home'&&D.cid&&!res.length&&!busy)fl();
+}
+const go=k=>{TB=k;render();scrollTo(0,0)};
+$('nv').innerHTML=[['home','⌂','Jelajah'],['lib','♫','Koleksi'],['set','⚙','Pengaturan']].map(([k,i,n])=>`<a id="n${k}" onclick="go('${k}')"><span>${i}</span>${n}</a>`).join('');
+render();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script></body></html>
